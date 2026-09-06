@@ -94,14 +94,37 @@ async function loadResults(){
     $("averageScore").textContent=Math.round(avg)+"%";
 
     $("results").innerHTML=rows.length?rows.map((r,i)=>{
-      const score=Number(r.score||0), total=Number(r.total_questions||0);
+      const score=Number(r.score||0);
+      const total=Number(r.total_questions||0);
+      const wrong=Math.max(0,total-score);
       const pct=total ? Math.round((score/total)*100) : 0;
       const date=r.created_at ? new Date(r.created_at).toLocaleDateString("ar-EG") : "";
+      const studentName=(r.student_name||r.name||r.student||"اسم الطالب غير متاح");
+      const examName=(r.exam_title||r.title||"امتحان");
       return `<div class="result">
         <div class="score-pill">${pct}%</div>
-        <div class="student">${esc(r.student_name||"طالب")}</div>
-        <span class="exam">${esc(r.exam_title||"امتحان")} • الدرجة ${score}/${total}</span>
-        ${date?`<span class="date">${date}</span>`:""}
+        <span class="student-name">👤 ${esc(studentName)}</span>
+        <span class="exam-name">${esc(examName)}</span>
+
+        <div class="result-details">
+          <div class="detail-box correct">
+            <span>إجابات صحيحة</span>
+            <strong>✓ ${score}</strong>
+          </div>
+          <div class="detail-box wrong">
+            <span>إجابات خاطئة</span>
+            <strong>✕ ${wrong}</strong>
+          </div>
+          <div class="detail-box percent">
+            <span>نسبة الطالب</span>
+            <strong>${pct}%</strong>
+          </div>
+        </div>
+
+        <div class="result-meta">
+          <span class="score-label">الدرجة: ${score} من ${total}</span>
+          ${date?`<span class="result-date">${date}</span>`:""}
+        </div>
       </div>`;
     }).join(""):`<div class="empty-results">📊<br>لا توجد نتائج حتى الآن.<br><span class="small-text">ستظهر نتائج الطلاب هنا بعد تسليم الامتحان.</span></div>`;
   }catch(e){

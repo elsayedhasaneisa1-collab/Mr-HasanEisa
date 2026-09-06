@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة الأستاذ حسن عيسى</title>
+  <link rel="stylesheet" href="teacher.css">
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <main class="shell">
+    <section id="loginScreen" class="login-card">
+      <div class="brand">
+        <div class="brand-icon">ح</div>
+        <div>
+          <h1>أستاذ حسن عيسى</h1>
+          <p>لوحة تحكم الامتحانات</p>
+        </div>
+      </div>
+
+      <div class="lock">🔐</div>
+      <h2>تسجيل دخول المعلم</h2>
+      <p class="muted">أدخل بيانات الدخول للوصول إلى لوحة التحكم.</p>
+
+      <form id="loginForm">
+        <label>اسم المستخدم</label>
+        <input id="username" type="text" placeholder="Hasan" autocomplete="username" required>
+
+        <label>كلمة المرور</label>
+        <div class="password-wrap">
+          <input id="password" type="password" placeholder="•••••" autocomplete="current-password" required>
+          <button type="button" id="togglePass" class="eye">👁</button>
+        </div>
+
+        <button class="primary" type="submit">دخول إلى لوحة التحكم</button>
+        <div id="loginError" class="error"></div>
+      </form>
+
+      <div class="security-note">جلسة المعلم محلية على هذا الجهاز.</div>
+    </section>
+
+    <section id="dashboard" class="dashboard hidden">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">TEACHER PANEL</span>
+          <h1>لوحة الأستاذ حسن عيسى</h1>
+        </div>
+        <button id="logoutBtn" class="ghost">تسجيل الخروج</button>
+      </header>
+
+      <div id="message" class="message"></div>
+
+      <div class="grid">
+        <section class="card">
+          <h2>إنشاء امتحان جديد</h2>
+          <div class="form-grid">
+            <div>
+              <label>عنوان الامتحان</label>
+              <input id="examTitle" placeholder="امتحان اللغة العربية">
+            </div>
+            <div>
+              <label>مدة الامتحان بالدقائق</label>
+              <input id="duration" type="number" min="1" value="30">
+            </div>
+          </div>
+
+          <div class="section-head">
+            <h3>الأسئلة</h3>
+            <button id="addQuestion" class="small">+ إضافة سؤال</button>
+          </div>
+
+          <div id="questions"></div>
+
+          <button id="createExam" class="primary big">إنشاء الامتحان وتوليد الرابط 🚀</button>
+
+          <div id="linkBox" class="link-box hidden">
+            <label>رابط الامتحان للطلاب</label>
+            <div class="link-row">
+              <input id="examLink" readonly>
+              <button id="copyLink" class="small">نسخ</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="card side-card">
+          <h2>النتائج</h2>
+          <button id="refreshResults" class="secondary">تحديث النتائج</button>
+          <div id="results" class="results"></div>
+
+          <hr>
+
+          <h3>إدارة البيانات</h3>
+          <p class="muted small-text">يمسح بيانات الامتحانات والنتائج من قاعدة البيانات، وليس قاعدة Supabase نفسها.</p>
+          <button id="clearData" class="danger">مسح بيانات الامتحانات</button>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="teacher.js"></script>
+</body>
+</html>

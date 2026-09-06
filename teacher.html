@@ -18,8 +18,16 @@
 </div>
 
 <div id="app" class="hidden">
-<header class="mobile-head"><button id="menu">☰</button><b>حسن عيسى</b></header>
-<aside class="side">
+<header class="mobile-head"><button id="menu" aria-label="فتح القائمة">☰</button><b>حسن عيسى</b></header>
+<div id="drawer" class="drawer">
+  <div class="drawer-head"><div class="avatar">ح</div><div><b>الأستاذ حسن عيسى</b><small>مدير الامتحانات</small></div><button id="closeMenu">×</button></div>
+  <button class="drawer-tab active" data-tab="home">⌂ <span>نظرة عامة</span></button>
+  <button class="drawer-tab" data-tab="create">＋ <span>إنشاء امتحان</span></button>
+  <button class="drawer-tab" data-tab="results">▣ <span>الطلاب والنتائج</span></button>
+  <div class="drawer-foot"><div class="online">● متصل الآن</div><button id="drawerLogout">تسجيل الخروج</button></div>
+</div>
+<div id="drawerOverlay" class="drawer-overlay"></div>
+<aside class="side hidden-side">
   <div class="profile"><div class="avatar">ح</div><b>الأستاذ حسن عيسى</b><small>مدير الامتحانات</small></div>
   <button class="tab active" data-tab="home">⌂ <span>نظرة عامة</span></button>
   <button class="tab" data-tab="create">＋ <span>إنشاء امتحان</span></button>

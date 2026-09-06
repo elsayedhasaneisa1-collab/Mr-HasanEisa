@@ -23,7 +23,21 @@ $("next").onclick=()=>{if(idx<exam.questions.length-1){idx++;render()}};$("prev"
 async function submit(auto){clearInterval(timer);let payload=exam.questions.map((q,i)=>({question_id:q.id,selected_index:answers[i]}));$("exam").classList.add("hide");$("result").classList.remove("hide");$("score").textContent="جاري حساب النتيجة...";const {data,error}=await db.rpc("submit_public_attempt",{p_attempt_id:exam.attempt_id,p_answers:payload});if(error){$("score").textContent="حدث خطأ أثناء التسليم: "+error.message;return}$("score").innerHTML=`<div style="font-size:28px;font-weight:bold">درجتك ${data.score} من ${data.total}</div><p>${auto?"⏰ انتهى الوقت وتم التسليم تلقائيًا.":"تم تسليم الامتحان بنجاح 🎉"}</p>`}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 
-$("teacherBtn").onclick=()=>{$("student").classList.add("hide");$("teacherPage").classList.remove("hide");loadEditors();loadResults()};$("back").onclick=()=>{$("teacherPage").classList.add("hide");$("student").classList.remove("hide")};
+$("teacherBtn").onclick=()=>{$("student").classList.add("hide");$("teacherPage").classList.add("hide");$("teacherLogin").classList.remove("hide");$("teacherPass").value="";$("loginMsg").textContent=""};
+$("loginTeacher").onclick=()=>{if($("teacherPass").value==="25808"){sessionStorage.setItem("teacher_ok","1");$("teacherLogin").classList.add("hide");$("teacherPage").classList.remove("hide");loadEditors();loadResults()}else{$("loginMsg").textContent="كلمة المرور غير صحيحة ❌"}};
+$("teacherPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginTeacher").click()});
+$("back").onclick=()=>{$("teacherPage").classList.add("hide");$("teacherLogin").classList.add("hide");$("student").classList.remove("hide")};
+$("logoutTeacher").onclick=()=>{sessionStorage.removeItem("teacher_ok");$("teacherPage").classList.add("hide");$("teacherLogin").classList.remove("hide")};
+$("clearData").onclick=async()=>{
+ if(sessionStorage.getItem("teacher_ok")!=="1") return;
+ const p=prompt("للحذف الكامل اكتب كلمة مرور الأستاذ:");
+ if(p!=="25808"){alert("كلمة المرور غير صحيحة.");return}
+ if(!confirm("تحذير: سيتم حذف جميع الامتحانات والنتائج من قاعدة البيانات. هل أنت متأكد؟")) return;
+ const {data,error}=await db.rpc("delete_all_exam_data");
+ if(error){alert("فشل الحذف: "+error.message);return}
+ alert("تم مسح بيانات الامتحانات والنتائج بنجاح.");
+ $("results").innerHTML="لا توجد نتائج بعد.";
+};
 function loadEditors(){addQ()}
 function addQ(){let d=document.createElement("div");d.className="editor";d.innerHTML=`<label>السؤال<textarea class="qt">اكتب السؤال هنا</textarea></label>${[1,2,3,4].map(n=>`<label>اختيار ${n}<input class="qo" placeholder="الاختيار"></label>`).join("")}<label>الإجابة الصحيحة (1-4)<input class="qc" type="number" min="1" max="4" value="1"></label>`;$("editors").appendChild(d)}
 $("add").onclick=addQ;

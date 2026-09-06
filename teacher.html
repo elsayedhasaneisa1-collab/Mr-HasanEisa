@@ -83,9 +83,26 @@
           </div>
         </section>
 
-        <aside class="card side-card">
-          <h2>النتائج</h2>
-          <button id="refreshResults" class="secondary">تحديث النتائج</button>
+        <aside class="card side-card results-card">
+          <div class="results-title">
+            <div>
+              <span class="eyebrow">RESULTS CENTER</span>
+              <h2>نتائج الطلاب</h2>
+            </div>
+            <button id="refreshResults" class="refresh-btn" title="تحديث النتائج">↻</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span>عدد الطلاب</span>
+              <strong id="studentsCount">0</strong>
+            </div>
+            <div class="stat">
+              <span>متوسط الدرجات</span>
+              <strong id="averageScore">0%</strong>
+            </div>
+          </div>
+
           <div id="results" class="results"></div>
 
           <hr>

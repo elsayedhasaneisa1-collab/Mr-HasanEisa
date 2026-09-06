@@ -84,12 +84,31 @@ async function loadResults(){
   try{
     const data=await rpc("teacher_public_results",{});
     const rows=Array.isArray(data)?data:[];
-    $("results").innerHTML=rows.length?rows.map(r=>`
-      <div class="result">
-        <strong>${esc(r.student_name||"—")}</strong>
-        <span>${esc(r.exam_title||"—")} • ${r.score ?? 0}/${r.total_questions ?? 0}</span>
-      </div>`).join(""):`<p class="muted">لا توجد نتائج حتى الآن.</p>`;
-  }catch(e){$("results").innerHTML=`<p class="muted">تعذر تحميل النتائج.</p>`}
+    $("studentsCount").textContent=rows.length;
+
+    const percentages=rows.map(r=>{
+      const score=Number(r.score||0), total=Number(r.total_questions||0);
+      return total ? (score/total)*100 : 0;
+    });
+    const avg=percentages.length ? percentages.reduce((a,b)=>a+b,0)/percentages.length : 0;
+    $("averageScore").textContent=Math.round(avg)+"%";
+
+    $("results").innerHTML=rows.length?rows.map((r,i)=>{
+      const score=Number(r.score||0), total=Number(r.total_questions||0);
+      const pct=total ? Math.round((score/total)*100) : 0;
+      const date=r.created_at ? new Date(r.created_at).toLocaleDateString("ar-EG") : "";
+      return `<div class="result">
+        <div class="score-pill">${pct}%</div>
+        <div class="student">${esc(r.student_name||"طالب")}</div>
+        <span class="exam">${esc(r.exam_title||"امتحان")} • الدرجة ${score}/${total}</span>
+        ${date?`<span class="date">${date}</span>`:""}
+      </div>`;
+    }).join(""):`<div class="empty-results">📊<br>لا توجد نتائج حتى الآن.<br><span class="small-text">ستظهر نتائج الطلاب هنا بعد تسليم الامتحان.</span></div>`;
+  }catch(e){
+    $("results").innerHTML=`<div class="empty-results">تعذر تحميل النتائج حالياً.</div>`;
+    $("studentsCount").textContent="—";
+    $("averageScore").textContent="—";
+  }
 }
 $("refreshResults").onclick=loadResults;
 

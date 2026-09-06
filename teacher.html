@@ -1,97 +1,64 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>حسن عيسى | مركز المعلم</title>
-<link rel="stylesheet" href="teacher.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مركز امتحانات حسن عيسى</title><link rel="stylesheet" href="teacher.css">
 </head>
 <body>
-<div class="aurora"></div>
-<div class="app">
-  <aside class="sidebar">
-    <div class="logo"><span>ح</span><div><b>حسن عيسى</b><small>Teacher Center</small></div></div>
-    <nav>
-      <button class="nav active" data-section="overview">⌂ <span>الرئيسية</span></button>
-      <button class="nav" data-section="create">＋ <span>إنشاء امتحان</span></button>
-      <button class="nav" data-section="resultsSection">▣ <span>النتائج</span></button>
-    </nav>
-    <div class="side-bottom">
-      <div class="secure">● النظام متصل</div>
-      <button id="logoutBtn" class="logout">تسجيل الخروج</button>
-    </div>
-  </aside>
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="crest">ح</div><span class="label">TEACHER PORTAL</span>
+    <h1>تسجيل دخول المعلم</h1><p>مركز إدارة امتحانات الأستاذ حسن عيسى</p>
+    <form id="loginForm">
+      <label>اسم المستخدم</label><input id="username" placeholder="اسم المستخدم" required>
+      <label>كلمة المرور</label><div class="password"><input id="password" type="password" placeholder="كلمة المرور" required><button type="button" id="toggle">◉</button></div>
+      <button class="login-submit">دخول إلى المركز</button><div id="loginError"></div>
+    </form>
+  </div>
+</div>
 
-  <main class="main">
-    <section id="loginScreen" class="login">
-      <div class="login-box">
-        <div class="login-logo">ح</div>
-        <span class="mini">TEACHER ACCESS</span>
-        <h1>دخول المعلم</h1>
-        <p>أدخل بيانات حساب الأستاذ حسن عيسى للمتابعة.</p>
-        <form id="loginForm">
-          <label>اسم المستخدم</label>
-          <input id="username" autocomplete="username" required>
-          <label>كلمة المرور</label>
-          <div class="pass"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="togglePass">◉</button></div>
-          <button class="login-btn">دخول آمن</button>
-          <div id="loginError"></div>
-        </form>
-      </div>
-    </section>
+<div id="app" class="hidden">
+<header class="mobile-head"><button id="menu">☰</button><b>حسن عيسى</b></header>
+<aside class="side">
+  <div class="profile"><div class="avatar">ح</div><b>الأستاذ حسن عيسى</b><small>مدير الامتحانات</small></div>
+  <button class="tab active" data-tab="home">⌂ <span>نظرة عامة</span></button>
+  <button class="tab" data-tab="create">＋ <span>إنشاء امتحان</span></button>
+  <button class="tab" data-tab="results">▣ <span>الطلاب والنتائج</span></button>
+  <div class="side-foot"><div class="online">● متصل الآن</div><button id="logout">تسجيل الخروج</button></div>
+</aside>
 
-    <div id="dashboard" class="hidden">
-      <header class="top">
-        <div><span class="mini">TEACHER DASHBOARD</span><h1>مرحبًا أستاذ حسن 👋</h1></div>
-        <div class="date" id="today"></div>
-      </header>
+<main class="content">
+<section id="home" class="page">
+  <div class="top"><div><small>لوحة التحكم</small><h2>أهلاً يا أستاذ حسن 👋</h2></div><span id="date"></span></div>
+  <div class="welcome"><div><span class="label">EXAM MANAGEMENT</span><h1>كل نتائج طلابك في مكان واحد</h1><p>أنشئ الامتحان وأرسل الرابط ثم راقب أداء الطلاب بسهولة.</p></div><button class="primary" data-open="create">+ امتحان جديد</button></div>
+  <div class="stats">
+    <div><small>الطلاب</small><strong id="s1">0</strong><span>إجمالي المحاولات</span></div>
+    <div><small>متوسط المستوى</small><strong id="s2">0%</strong><span>متوسط نسبة الدرجات</span></div>
+    <div><small>أعلى نتيجة</small><strong id="s3">0%</strong><span id="best">لا توجد نتائج</span></div>
+  </div>
+  <div class="section-head"><div><small>RECENT RESULTS</small><h3>آخر النتائج</h3></div><button class="outline" id="refresh">تحديث ↻</button></div>
+  <div id="recent" class="cards"></div>
+</section>
 
-      <section id="overview" class="section">
-        <div class="hero">
-          <div><span class="mini">EXAM CONTROL CENTER</span><h2>إدارة الامتحانات والطلاب</h2><p>أنشئ امتحانك، أرسل الرابط، وتابع أداء الطلاب من مكان واحد.</p></div>
-          <button class="hero-btn" data-go="create">إنشاء امتحان جديد ＋</button>
-        </div>
-        <div class="metrics">
-          <div class="metric"><span>إجمالي الطلاب</span><b id="studentsCount">0</b><small>طالب مسجل بالنتائج</small></div>
-          <div class="metric"><span>متوسط النتائج</span><b id="averageScore">0%</b><small>متوسط نسبة النجاح</small></div>
-          <div class="metric"><span>أفضل نتيجة</span><b id="bestScore">0%</b><small id="bestStudent">لا توجد نتائج</small></div>
-        </div>
-        <div class="panel">
-          <div class="panel-head"><div><span class="mini">LATEST</span><h3>آخر النتائج</h3></div><button id="refreshResults" class="outline">تحديث ↻</button></div>
-          <div id="overviewResults" class="result-list"></div>
-        </div>
-      </section>
+<section id="create" class="page hidden">
+ <div class="top"><div><small>CREATE EXAM</small><h2>إنشاء امتحان جديد</h2></div></div>
+ <div class="editor">
+  <div class="form-card">
+   <div class="two"><div><label>اسم الامتحان</label><input id="title" placeholder="امتحان اللغة العربية"></div><div><label>المدة</label><input id="duration" type="number" min="1" value="30"></div></div>
+   <div class="question-head"><h3>أسئلة الامتحان</h3><button id="add" class="outline">+ سؤال</button></div>
+   <div id="questions"></div>
+   <button id="make" class="primary wide">إنشاء الامتحان</button>
+   <div id="share" class="share hidden"><small>الرابط الجاهز للطلاب</small><div><input id="link" readonly><button id="copy">نسخ الرابط</button></div></div>
+  </div>
+ </div>
+</section>
 
-      <section id="create" class="section hidden">
-        <div class="section-title"><div><span class="mini">NEW EXAM</span><h2>إنشاء امتحان</h2></div></div>
-        <div class="create-grid">
-          <div class="panel">
-            <div class="two">
-              <div><label>عنوان الامتحان</label><input id="examTitle" placeholder="امتحان اللغة العربية"></div>
-              <div><label>المدة بالدقائق</label><input id="duration" type="number" min="1" value="30"></div>
-            </div>
-            <div class="questions-head"><h3>الأسئلة</h3><button id="addQuestion" class="outline">＋ إضافة سؤال</button></div>
-            <div id="questions"></div>
-            <button id="createExam" class="create-btn">إنشاء الامتحان وتوليد الرابط 🚀</button>
-            <div id="linkBox" class="share hidden"><span>رابط الطلاب</span><div><input id="examLink" readonly><button id="copyLink">نسخ</button></div></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="resultsSection" class="section hidden">
-        <div class="section-title"><div><span class="mini">STUDENT PERFORMANCE</span><h2>نتائج الطلاب</h2></div><button id="refreshResults2" class="outline">تحديث ↻</button></div>
-        <div class="results-stats">
-          <div><b id="rTotal">0</b><span>إجمالي الطلاب</span></div>
-          <div><b id="rPass">0%</b><span>متوسط النسبة</span></div>
-          <div><b id="rTop">0%</b><span>أعلى نتيجة</span></div>
-        </div>
-        <div class="panel">
-          <div id="allResults" class="result-list large"></div>
-        </div>
-      </section>
-    </div>
-  </main>
+<section id="results" class="page hidden">
+ <div class="top"><div><small>STUDENT RESULTS</small><h2>الطلاب والنتائج</h2></div><button class="outline" id="refresh2">تحديث ↻</button></div>
+ <div class="result-toolbar"><input id="search" placeholder="🔎 ابحث باسم الطالب..."><select id="sort"><option value="desc">الأعلى نتيجة أولاً</option><option value="asc">الأقل نتيجة أولاً</option></select></div>
+ <div id="rankings" class="rankings"></div>
+</section>
+</main>
 </div>
 <script src="teacher.js"></script>
-</body>
-</html>
+</body></html>

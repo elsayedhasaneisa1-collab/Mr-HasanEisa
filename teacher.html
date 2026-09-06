@@ -1,120 +1,97 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة الأستاذ حسن عيسى</title>
-  <link rel="stylesheet" href="teacher.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حسن عيسى | مركز المعلم</title>
+<link rel="stylesheet" href="teacher.css">
 </head>
 <body>
-  <div class="bg-glow"></div>
+<div class="aurora"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><span>ح</span><div><b>حسن عيسى</b><small>Teacher Center</small></div></div>
+    <nav>
+      <button class="nav active" data-section="overview">⌂ <span>الرئيسية</span></button>
+      <button class="nav" data-section="create">＋ <span>إنشاء امتحان</span></button>
+      <button class="nav" data-section="resultsSection">▣ <span>النتائج</span></button>
+    </nav>
+    <div class="side-bottom">
+      <div class="secure">● النظام متصل</div>
+      <button id="logoutBtn" class="logout">تسجيل الخروج</button>
+    </div>
+  </aside>
 
-  <main class="shell">
-    <section id="loginScreen" class="login-card">
-      <div class="brand">
-        <div class="brand-icon">ح</div>
-        <div>
-          <h1>أستاذ حسن عيسى</h1>
-          <p>لوحة تحكم الامتحانات</p>
-        </div>
+  <main class="main">
+    <section id="loginScreen" class="login">
+      <div class="login-box">
+        <div class="login-logo">ح</div>
+        <span class="mini">TEACHER ACCESS</span>
+        <h1>دخول المعلم</h1>
+        <p>أدخل بيانات حساب الأستاذ حسن عيسى للمتابعة.</p>
+        <form id="loginForm">
+          <label>اسم المستخدم</label>
+          <input id="username" autocomplete="username" required>
+          <label>كلمة المرور</label>
+          <div class="pass"><input id="password" type="password" autocomplete="current-password" required><button type="button" id="togglePass">◉</button></div>
+          <button class="login-btn">دخول آمن</button>
+          <div id="loginError"></div>
+        </form>
       </div>
-
-      <div class="lock">🔐</div>
-      <h2>تسجيل دخول المعلم</h2>
-      <p class="muted">أدخل بيانات الدخول للوصول إلى لوحة التحكم.</p>
-
-      <form id="loginForm">
-        <label>اسم المستخدم</label>
-        <input id="username" type="text" placeholder="Hasan" autocomplete="username" required>
-
-        <label>كلمة المرور</label>
-        <div class="password-wrap">
-          <input id="password" type="password" placeholder="•••••" autocomplete="current-password" required>
-          <button type="button" id="togglePass" class="eye">👁</button>
-        </div>
-
-        <button class="primary" type="submit">دخول إلى لوحة التحكم</button>
-        <div id="loginError" class="error"></div>
-      </form>
-
-      
     </section>
 
-    <section id="dashboard" class="dashboard hidden">
-      <header class="topbar">
-        <div>
-          <span class="eyebrow">TEACHER PANEL</span>
-          <h1>لوحة الأستاذ حسن عيسى</h1>
-        </div>
-        <button id="logoutBtn" class="ghost">تسجيل الخروج</button>
+    <div id="dashboard" class="hidden">
+      <header class="top">
+        <div><span class="mini">TEACHER DASHBOARD</span><h1>مرحبًا أستاذ حسن 👋</h1></div>
+        <div class="date" id="today"></div>
       </header>
 
-      <div id="message" class="message"></div>
+      <section id="overview" class="section">
+        <div class="hero">
+          <div><span class="mini">EXAM CONTROL CENTER</span><h2>إدارة الامتحانات والطلاب</h2><p>أنشئ امتحانك، أرسل الرابط، وتابع أداء الطلاب من مكان واحد.</p></div>
+          <button class="hero-btn" data-go="create">إنشاء امتحان جديد ＋</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span>إجمالي الطلاب</span><b id="studentsCount">0</b><small>طالب مسجل بالنتائج</small></div>
+          <div class="metric"><span>متوسط النتائج</span><b id="averageScore">0%</b><small>متوسط نسبة النجاح</small></div>
+          <div class="metric"><span>أفضل نتيجة</span><b id="bestScore">0%</b><small id="bestStudent">لا توجد نتائج</small></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><span class="mini">LATEST</span><h3>آخر النتائج</h3></div><button id="refreshResults" class="outline">تحديث ↻</button></div>
+          <div id="overviewResults" class="result-list"></div>
+        </div>
+      </section>
 
-      <div class="grid">
-        <section class="card">
-          <h2>إنشاء امتحان جديد</h2>
-          <div class="form-grid">
-            <div>
-              <label>عنوان الامتحان</label>
-              <input id="examTitle" placeholder="امتحان اللغة العربية">
+      <section id="create" class="section hidden">
+        <div class="section-title"><div><span class="mini">NEW EXAM</span><h2>إنشاء امتحان</h2></div></div>
+        <div class="create-grid">
+          <div class="panel">
+            <div class="two">
+              <div><label>عنوان الامتحان</label><input id="examTitle" placeholder="امتحان اللغة العربية"></div>
+              <div><label>المدة بالدقائق</label><input id="duration" type="number" min="1" value="30"></div>
             </div>
-            <div>
-              <label>مدة الامتحان بالدقائق</label>
-              <input id="duration" type="number" min="1" value="30">
-            </div>
+            <div class="questions-head"><h3>الأسئلة</h3><button id="addQuestion" class="outline">＋ إضافة سؤال</button></div>
+            <div id="questions"></div>
+            <button id="createExam" class="create-btn">إنشاء الامتحان وتوليد الرابط 🚀</button>
+            <div id="linkBox" class="share hidden"><span>رابط الطلاب</span><div><input id="examLink" readonly><button id="copyLink">نسخ</button></div></div>
           </div>
+        </div>
+      </section>
 
-          <div class="section-head">
-            <h3>الأسئلة</h3>
-            <button id="addQuestion" class="small">+ إضافة سؤال</button>
-          </div>
-
-          <div id="questions"></div>
-
-          <button id="createExam" class="primary big">إنشاء الامتحان وتوليد الرابط 🚀</button>
-
-          <div id="linkBox" class="link-box hidden">
-            <label>رابط الامتحان للطلاب</label>
-            <div class="link-row">
-              <input id="examLink" readonly>
-              <button id="copyLink" class="small">نسخ</button>
-            </div>
-          </div>
-        </section>
-
-        <aside class="card side-card results-card">
-          <div class="results-title">
-            <div>
-              <span class="eyebrow">RESULTS CENTER</span>
-              <h2>نتائج الطلاب</h2>
-            </div>
-            <button id="refreshResults" class="refresh-btn" title="تحديث النتائج">↻</button>
-          </div>
-
-          <div class="stats">
-            <div class="stat">
-              <span>عدد الطلاب</span>
-              <strong id="studentsCount">0</strong>
-            </div>
-            <div class="stat">
-              <span>متوسط الدرجات</span>
-              <strong id="averageScore">0%</strong>
-            </div>
-          </div>
-
-          <div id="results" class="results"></div>
-
-          <hr>
-
-          <h3>إدارة البيانات</h3>
-          <p class="muted small-text">يمسح بيانات الامتحانات والنتائج من قاعدة البيانات، وليس قاعدة Supabase نفسها.</p>
-          <button id="clearData" class="danger">مسح بيانات الامتحانات</button>
-        </aside>
-      </div>
-    </section>
+      <section id="resultsSection" class="section hidden">
+        <div class="section-title"><div><span class="mini">STUDENT PERFORMANCE</span><h2>نتائج الطلاب</h2></div><button id="refreshResults2" class="outline">تحديث ↻</button></div>
+        <div class="results-stats">
+          <div><b id="rTotal">0</b><span>إجمالي الطلاب</span></div>
+          <div><b id="rPass">0%</b><span>متوسط النسبة</span></div>
+          <div><b id="rTop">0%</b><span>أعلى نتيجة</span></div>
+        </div>
+        <div class="panel">
+          <div id="allResults" class="result-list large"></div>
+        </div>
+      </section>
+    </div>
   </main>
-
-  <script src="teacher.js"></script>
+</div>
+<script src="teacher.js"></script>
 </body>
 </html>

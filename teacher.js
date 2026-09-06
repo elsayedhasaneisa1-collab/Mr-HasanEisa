@@ -1,153 +1,21 @@
-const SUPABASE_URL = "https://zvvfjmadziyuwutdresz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_5tzbKmV1EQZTDFLtRPLhnQ_POvlG0Xc";
-const TEACHER_USER = "Hasan";
-const TEACHER_PASS = "25808";
-
-const $ = id => document.getElementById(id);
-let questionCount = 0;
-
-function headers(){return {"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY};}
-async function rpc(fn, body){
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {method:"POST",headers:headers(),body:JSON.stringify(body)});
-  const text = await r.text();
-  if(!r.ok) throw new Error(text || `HTTP ${r.status}`);
-  return text ? JSON.parse(text) : null;
-}
-function msg(text, bad=false){$("message").textContent=text;$("message").className="message "+(bad?"bad":"ok");setTimeout(()=>{$("message").className="message";$("message").textContent=""},5000)}
-
+const SUPABASE_URL="https://zvvfjmadziyuwutdresz.supabase.co";
+const SUPABASE_KEY="sb_publishable_5tzbKmV1EQZTDFLtRPLhnQ_POvlG0Xc";
+const USER="Hasan", PASS="25808"; let qid=0, cached=[]; const $=x=>document.getElementById(x);
+const hdr=()=>({"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY});
+async function rpc(fn,body){const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`,{method:"POST",headers:hdr(),body:JSON.stringify(body)});const t=await r.text();if(!r.ok)throw Error(t||"Request failed");return t?JSON.parse(t):null}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function go(id){document.querySelectorAll(".section").forEach(x=>x.classList.add("hidden"));$(id).classList.remove("hidden");document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));const b=document.querySelector(`[data-section="${id}"]`);if(b)b.classList.add("active")}
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>go(b.dataset.section));
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 $("togglePass").onclick=()=>{$("password").type=$("password").type==="password"?"text":"password"};
-
-$("loginForm").onsubmit=e=>{
-  e.preventDefault();
-  if($("username").value.trim()===TEACHER_USER && $("password").value===TEACHER_PASS){
-    sessionStorage.setItem("hasan_teacher_login","1");
-    $("loginScreen").classList.add("hidden");
-    $("dashboard").classList.remove("hidden");
-    if(!$("questions").children.length) addQuestion();
-    loadResults();
-  }else{
-    $("loginError").textContent="اسم المستخدم أو كلمة المرور غير صحيحة.";
-  }
-};
-
-$("logoutBtn").onclick=()=>{
-  sessionStorage.removeItem("hasan_teacher_login");
-  location.reload();
-};
-
-function addQuestion(){
-  questionCount++;
-  const n=questionCount;
-  const el=document.createElement("div");
-  el.className="question";
-  el.innerHTML=`
-    <div class="q-head"><span class="q-number">السؤال ${n}</span><button type="button" class="remove">حذف</button></div>
-    <label>نص السؤال</label>
-    <input class="q-text" placeholder="اكتب السؤال هنا">
-    <label>الاختيارات — اختر الإجابة الصحيحة</label>
-    <div class="options">
-      ${[0,1,2,3].map(i=>`<div class="option-row"><input type="radio" name="correct_${n}" value="${i}" ${i===0?"checked":""}><input class="opt" placeholder="الاختيار ${i+1}"></div>`).join("")}
-    </div>`;
-  el.querySelector(".remove").onclick=()=>el.remove();
-  $("questions").appendChild(el);
-}
+$("loginForm").onsubmit=e=>{e.preventDefault();if($("username").value.trim()===USER&&$("password").value===PASS){sessionStorage.setItem("hasan_teacher_login","1");showDash()}else $("loginError").textContent="بيانات الدخول غير صحيحة."};
+$("logoutBtn").onclick=()=>{sessionStorage.removeItem("hasan_teacher_login");location.reload()};
+function showDash(){$("loginScreen").classList.add("hidden");$("dashboard").classList.remove("hidden");$("today").textContent=new Date().toLocaleDateString("ar-EG",{weekday:"long",year:"numeric",month:"long",day:"numeric"});if(!document.querySelector(".question"))addQuestion();loadResults()}
+function addQuestion(){qid++;const d=document.createElement("div");d.className="question";d.innerHTML=`<div class="qtop"><span class="qnum">السؤال ${qid}</span><button class="remove">حذف</button></div><label>نص السؤال</label><input class="qt" placeholder="اكتب السؤال هنا"><label>الاختيارات</label><div class="opts">${[0,1,2,3].map(i=>`<div class="opt"><input type="radio" name="c${qid}" value="${i}" ${i===0?"checked":""}><input class="qo" placeholder="الاختيار ${i+1}"></div>`).join("")}</div>`;d.querySelector(".remove").onclick=()=>d.remove();$("questions").appendChild(d)}
 $("addQuestion").onclick=addQuestion;
-
-$("createExam").onclick=async()=>{
-  try{
-    const title=$("examTitle").value.trim()||"امتحان اللغة العربية";
-    const duration=parseInt($("duration").value,10);
-    if(!duration||duration<1) throw new Error("اكتب مدة صحيحة.");
-    const qs=[...document.querySelectorAll(".question")].map((el)=>{
-      const opts=[...el.querySelectorAll(".opt")].map(x=>x.value.trim());
-      const checked=el.querySelector('input[type="radio"]:checked');
-      return {text:el.querySelector(".q-text").value.trim(), options:opts, correct_index:checked?Number(checked.value):0};
-    });
-    if(!qs.length) throw new Error("أضف سؤالاً واحداً على الأقل.");
-    if(qs.some(q=>!q.text || q.options.some(o=>!o))) throw new Error("أكمل السؤال والاختيارات.");
-    const data=await rpc("create_public_exam",{p_title:title,p_duration_minutes:duration,p_questions:qs});
-    const code=Array.isArray(data)?data[0]?.code:data?.code;
-    if(!code) throw new Error("تم الإنشاء لكن لم يصل رمز الامتحان.");
-    const link=`${location.origin}${location.pathname.replace(/\/teacher\.html$/,"/index.html")}?exam=${encodeURIComponent(code)}`;
-    $("examLink").value=link;
-    $("linkBox").classList.remove("hidden");
-    msg("تم إنشاء الامتحان بنجاح 🎉");
-  }catch(e){msg(e.message||"حدث خطأ.",true)}
-};
-
-$("copyLink").onclick=async()=>{
-  try{await navigator.clipboard.writeText($("examLink").value);msg("تم نسخ رابط الامتحان 📋");}
-  catch{ $("examLink").select(); document.execCommand("copy"); msg("تم نسخ الرابط 📋");}
-};
-
-async function loadResults(){
-  try{
-    const data=await rpc("teacher_public_results",{});
-    const rows=Array.isArray(data)?data:[];
-    $("studentsCount").textContent=rows.length;
-
-    const percentages=rows.map(r=>{
-      const score=Number(r.score||0), total=Number(r.total_questions||0);
-      return total ? (score/total)*100 : 0;
-    });
-    const avg=percentages.length ? percentages.reduce((a,b)=>a+b,0)/percentages.length : 0;
-    $("averageScore").textContent=Math.round(avg)+"%";
-
-    $("results").innerHTML=rows.length?rows.map((r,i)=>{
-      const score=Number(r.score||0);
-      const total=Number(r.total_questions||0);
-      const wrong=Math.max(0,total-score);
-      const pct=total ? Math.round((score/total)*100) : 0;
-      const date=r.created_at ? new Date(r.created_at).toLocaleDateString("ar-EG") : "";
-      const studentName=(r.student_name||r.name||r.student||"اسم الطالب غير متاح");
-      const examName=(r.exam_title||r.title||"امتحان");
-      return `<div class="result">
-        <div class="score-pill">${pct}%</div>
-        <span class="student-name">👤 ${esc(studentName)}</span>
-        <span class="exam-name">${esc(examName)}</span>
-
-        <div class="result-details">
-          <div class="detail-box correct">
-            <span>إجابات صحيحة</span>
-            <strong>✓ ${score}</strong>
-          </div>
-          <div class="detail-box wrong">
-            <span>إجابات خاطئة</span>
-            <strong>✕ ${wrong}</strong>
-          </div>
-          <div class="detail-box percent">
-            <span>نسبة الطالب</span>
-            <strong>${pct}%</strong>
-          </div>
-        </div>
-
-        <div class="result-meta">
-          <span class="score-label">الدرجة: ${score} من ${total}</span>
-          ${date?`<span class="result-date">${date}</span>`:""}
-        </div>
-      </div>`;
-    }).join(""):`<div class="empty-results">📊<br>لا توجد نتائج حتى الآن.<br><span class="small-text">ستظهر نتائج الطلاب هنا بعد تسليم الامتحان.</span></div>`;
-  }catch(e){
-    $("results").innerHTML=`<div class="empty-results">تعذر تحميل النتائج حالياً.</div>`;
-    $("studentsCount").textContent="—";
-    $("averageScore").textContent="—";
-  }
-}
-$("refreshResults").onclick=loadResults;
-
-$("clearData").onclick=async()=>{
-  if(!confirm("هل أنت متأكد؟ سيتم مسح بيانات الامتحانات والنتائج.")) return;
-  const p=prompt("للتأكيد اكتب كلمة مرور المعلم:");
-  if(p!==TEACHER_PASS) return alert("كلمة المرور غير صحيحة.");
-  try{await rpc("delete_all_exam_data",{});msg("تم مسح بيانات الامتحانات والنتائج.");loadResults();}
-  catch(e){msg("تعذر مسح البيانات. تأكد من وجود دالة delete_all_exam_data في Supabase.",true)}
-};
-
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
-
-if(sessionStorage.getItem("hasan_teacher_login")==="1"){
-  $("loginScreen").classList.add("hidden");
-  $("dashboard").classList.remove("hidden");
-  addQuestion();
-  loadResults();
-}
+$("createExam").onclick=async()=>{try{const title=$("examTitle").value.trim()||"امتحان اللغة العربية",duration=+$("duration").value;const questions=[...document.querySelectorAll(".question")].map(d=>({text:d.querySelector(".qt").value.trim(),options:[...d.querySelectorAll(".qo")].map(x=>x.value.trim()),correct_index:+d.querySelector('input[type=radio]:checked').value}));if(!duration||questions.length<1||questions.some(q=>!q.text||q.options.some(x=>!x)))throw Error("أكمل بيانات الامتحان والأسئلة.");const data=await rpc("create_public_exam",{p_title:title,p_duration_minutes:duration,p_questions:questions});const code=Array.isArray(data)?data[0]?.code:data?.code;if(!code)throw Error("لم يتم استلام رمز الامتحان.");$("examLink").value=`${location.origin}${location.pathname.replace(/teacher\\.html$/,"index.html")}?exam=${encodeURIComponent(code)}`;$("linkBox").classList.remove("hidden")}catch(e){alert(e.message)}};
+$("copyLink").onclick=async()=>{await navigator.clipboard.writeText($("examLink").value);$("copyLink").textContent="تم النسخ ✓";setTimeout(()=>$("copyLink").textContent="نسخ",1500)};
+function resultCard(r){const score=+r.score||0,total=+r.total_questions||0,wrong=Math.max(0,total-score),pct=total?Math.round(score/total*100):0;return `<article class="result"><div><div class="student">👤 ${esc(r.student_name||"اسم الطالب غير متاح")}</div><span class="exam">${esc(r.exam_title||"امتحان")}</span></div><div class="result-right"><div class="percent ${pct>=50?"good":""}">${pct}%</div></div><div class="detail-row"><span class="pill ok">✓ صحيح: ${score}</span><span class="pill bad">✕ خطأ: ${wrong}</span><span class="pill">الدرجة: ${score}/${total}</span></div></article>`}
+async function loadResults(){try{const data=await rpc("teacher_public_results",{});cached=Array.isArray(data)?data:[];const p=cached.map(r=>{const t=+r.total_questions||0;return t?(+r.score||0)/t*100:0});const avg=p.length?Math.round(p.reduce((a,b)=>a+b,0)/p.length):0,best=p.length?Math.round(Math.max(...p)):0;const bi=p.indexOf(Math.max(...p));$("studentsCount").textContent=cached.length;$("averageScore").textContent=avg+"%";$("bestScore").textContent=best+"%";$("bestStudent").textContent=bi>=0?(cached[bi].student_name||"أفضل طالب"):"لا توجد نتائج";$("rTotal").textContent=cached.length;$("rPass").textContent=avg+"%";$("rTop").textContent=best+"%";const cards=cached.length?cached.map(resultCard).join(""):`<div class="empty">📊<br>لا توجد نتائج حتى الآن</div>`;$("overviewResults").innerHTML=cached.slice(0,5).map(resultCard).join("")||`<div class="empty">لا توجد نتائج حتى الآن</div>`;$("allResults").innerHTML=cards}catch(e){$("overviewResults").innerHTML=`<div class="empty">تعذر تحميل النتائج</div>`;$("allResults").innerHTML=$("overviewResults").innerHTML}}
+$("refreshResults").onclick=loadResults;$("refreshResults2").onclick=loadResults;
+if(sessionStorage.getItem("hasan_teacher_login")==="1")showDash();

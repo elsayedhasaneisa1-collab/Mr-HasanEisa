@@ -17,13 +17,13 @@
 <div class="block-head"><div><span>TOP STUDENTS</span><h2>المتفوقون</h2></div><button class="ghost" data-go="results">كل النتائج ←</button></div><div id="topStudents" class="top-grid"></div></section>
 <section id="results" class="page hidden"><div class="title"><div><span>STUDENT RESULTS</span><h1>نتائج الطلاب</h1><p>ابحث ورتّب النتائج بسهولة.</p></div><button class="ghost" id="refresh">تحديث ↻</button></div>
 <div class="filters">
-  <input id="search" placeholder="🔎  ابحث باسم الطالب...">
+  <input id="search" placeholder="🔎 ابحث باسم الطالب...">
   <select id="order">
     <option value="desc">الأعلى نتيجة</option>
     <option value="asc">الأقل نتيجة</option>
   </select>
-  <button class="pdf-btn" id="downloadPdf">⬇ تنزيل النتائج PDF</button>
-  <button class="pdf-btn" id="deleteAll" style="border-color:#ff4444;color:#ff6666;">🗑 مسح قاعدة البيانات</button>
+  <button class="pdf-btn" id="downloadPdf">⬇ تنزيل PDF</button>
+  <button class="pdf-btn" id="deleteAll" style="border-color:#ff4444;color:#ff6666;">🗑 مسح</button>
 </div>
 <div id="resultsList"></div></section>
 <section id="create" class="page hidden"><div class="title"><div><span>CREATE EXAM</span><h1>إنشاء امتحان</h1></div></div><div class="editor"><div class="row"><div><label>اسم الامتحان</label><input id="examTitle" placeholder="امتحان اللغة العربية"></div><div><label>المدة بالدقائق</label><input id="duration" type="number" min="1" value="30"></div></div><div class="qhead"><h2>الأسئلة</h2><button class="ghost" id="addQ">+ إضافة سؤال</button></div><div id="questions"></div><button class="blue full" id="createExam">إنشاء الامتحان</button><div id="share" class="share hidden"><b>الرابط جاهز للطلاب 🎉</b><div><input id="examLink" readonly><button id="copy">نسخ</button></div></div></div></section>

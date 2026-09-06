@@ -1,47 +1,57 @@
 const SUPABASE_URL="https://zvvfjmadziyuwutdresz.supabase.co";
 const SUPABASE_KEY="sb_publishable_5tzbKmV1EQZTDFLtRPLhnQ_POvlG0Xc";
-const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const $=x=>document.getElementById(x); let exam=null,idx=0,answers=[],endAt=0,timer=null;
+const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=id=>document.getElementById(id);
+let exam=null,attemptId=null,questions=[],answers=[],current=0,endAt=0,timerId=null,submitted=false;
 
-async function load(){
- const id=new URLSearchParams(location.search).get("exam");
- if(!id){$("title").textContent="لا يوجد امتحان";$("info").textContent="افتح رابط الامتحان الذي أرسله الأستاذ.";return}
- const {data,error}=await db.rpc("get_public_exam",{p_code:id});
- if(error||!data||!data.length){$("title").textContent="الامتحان غير موجود";$("info").textContent=error?.message||"تأكد من الرابط.";return}
- exam=data[0]; $("title").textContent=exam.title;$("info").textContent=`${exam.question_count} سؤال • الوقت ${exam.duration_minutes} دقيقة`;$("startBtn").disabled=false;
+async function init(){
+ const code=new URLSearchParams(location.search).get("exam");
+ if(!code){return fail("رابط الامتحان غير صحيح.")}
+ const {data,error}=await client.rpc("get_public_exam",{p_code:code});
+ if(error||!data?.length){return fail("الامتحان غير موجود أو تم إغلاقه.")}
+ exam=data[0];
+ $("examTitle").textContent=exam.title;
+ $("examInfo").textContent=`${exam.question_count} سؤال • الوقت ${exam.duration_minutes} دقيقة`;
+ $("loading").classList.add("hidden");$("start").classList.remove("hidden");$("startBtn").disabled=false;
 }
-$("startBtn").onclick=async()=>{
- const name=$("name").value.trim();if(!name){$("msg").textContent="اكتب اسمك 😊";return}
- const {data,error}=await db.rpc("start_public_attempt",{p_code:exam.code,p_student_name:name});
- if(error){$("msg").textContent="تعذر بدء الامتحان: "+error.message;return}
- exam.questions=data.questions;exam.attempt_id=data.attempt_id;answers=new Array(exam.questions.length).fill(null);idx=0;
- endAt=new Date(data.ends_at).getTime();$("start").classList.add("hide");$("exam").classList.remove("hide");$("liveTitle").textContent=exam.title;$("student").textContent="الطالب: "+name;render();timer=setInterval(clock,250);clock();
-};
-function clock(){let left=Math.max(0,endAt-Date.now()),s=Math.ceil(left/1000),m=Math.floor(s/60),x=s%60;$("timer").textContent=String(m).padStart(2,"0")+":"+String(x).padStart(2,"0");if(left<=0){clearInterval(timer);submit(true)}}
-function render(){let q=exam.questions[idx];$("question").innerHTML=`<div class="q">السؤال ${idx+1}: ${esc(q.text)}</div>`+q.options.map((o,i)=>`<button class="opt ${answers[idx]===i?"sel":""}" data-i="${i}">${esc(o)}</button>`).join("");document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{answers[idx]=+b.dataset.i;render()});$("progress").style.width=((idx+1)/exam.questions.length*100)+"%";$("prev").disabled=idx===0;$("next").classList.toggle("hide",idx===exam.questions.length-1);$("submit").classList.toggle("hide",idx!==exam.questions.length-1)}
-$("next").onclick=()=>{if(idx<exam.questions.length-1){idx++;render()}};$("prev").onclick=()=>{if(idx>0){idx--;render()}};$("submit").onclick=()=>submit(false);
-async function submit(auto){clearInterval(timer);let payload=exam.questions.map((q,i)=>({question_id:q.id,selected_index:answers[i]}));$("exam").classList.add("hide");$("result").classList.remove("hide");$("score").textContent="جاري حساب النتيجة...";const {data,error}=await db.rpc("submit_public_attempt",{p_attempt_id:exam.attempt_id,p_answers:payload});if(error){$("score").textContent="حدث خطأ أثناء التسليم: "+error.message;return}$("score").innerHTML=`<div style="font-size:28px;font-weight:bold">درجتك ${data.score} من ${data.total}</div><p>${auto?"⏰ انتهى الوقت وتم التسليم تلقائيًا.":"تم تسليم الامتحان بنجاح 🎉"}</p>`}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-
-$("teacherBtn").onclick=()=>{$("student").classList.add("hide");$("teacherPage").classList.add("hide");$("teacherLogin").classList.remove("hide");$("teacherPass").value="";$("loginMsg").textContent=""};
-$("loginTeacher").onclick=()=>{if($("teacherPass").value==="25808"){sessionStorage.setItem("teacher_ok","1");$("teacherLogin").classList.add("hide");$("teacherPage").classList.remove("hide");loadEditors();loadResults()}else{$("loginMsg").textContent="كلمة المرور غير صحيحة ❌"}};
-$("teacherPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginTeacher").click()});
-$("back").onclick=()=>{$("teacherPage").classList.add("hide");$("teacherLogin").classList.add("hide");$("student").classList.remove("hide")};
-$("logoutTeacher").onclick=()=>{sessionStorage.removeItem("teacher_ok");$("teacherPage").classList.add("hide");$("teacherLogin").classList.remove("hide")};
-$("clearData").onclick=async()=>{
- if(sessionStorage.getItem("teacher_ok")!=="1") return;
- const p=prompt("للحذف الكامل اكتب كلمة مرور الأستاذ:");
- if(p!=="25808"){alert("كلمة المرور غير صحيحة.");return}
- if(!confirm("تحذير: سيتم حذف جميع الامتحانات والنتائج من قاعدة البيانات. هل أنت متأكد؟")) return;
- const {data,error}=await db.rpc("delete_all_exam_data");
- if(error){alert("فشل الحذف: "+error.message);return}
- alert("تم مسح بيانات الامتحانات والنتائج بنجاح.");
- $("results").innerHTML="لا توجد نتائج بعد.";
-};
-function loadEditors(){addQ()}
-function addQ(){let d=document.createElement("div");d.className="editor";d.innerHTML=`<label>السؤال<textarea class="qt">اكتب السؤال هنا</textarea></label>${[1,2,3,4].map(n=>`<label>اختيار ${n}<input class="qo" placeholder="الاختيار"></label>`).join("")}<label>الإجابة الصحيحة (1-4)<input class="qc" type="number" min="1" max="4" value="1"></label>`;$("editors").appendChild(d)}
-$("add").onclick=addQ;
-$("create").onclick=async()=>{let qs=[...document.querySelectorAll(".editor")].map(e=>({text:e.querySelector(".qt").value,options:[...e.querySelectorAll(".qo")].map(x=>x.value),correct_index:+e.querySelector(".qc").value-1}));let {data,error}=await db.rpc("create_public_exam",{p_title:$("tTitle").value,p_duration_minutes:+$("tMinutes").value,p_questions:qs});if(error){$("tmsg").textContent=error.message;return}let link=location.origin+location.pathname+"?exam="+encodeURIComponent(data.code);$("link").value=link;$("tmsg").textContent="تم إنشاء الامتحان. الرابط جاهز 🔗";};
-$("copy").onclick=async()=>{if($("link").value){await navigator.clipboard.writeText($("link").value);$("tmsg").textContent="تم نسخ الرابط ✅"}};
-async function loadResults(){let {data,error}=await db.rpc("teacher_public_results");$("results").innerHTML=error?error.message:(data?.length?data.map(r=>`<div class="row"><b>${esc(r.student_name)}</b> — ${esc(r.exam_title)}<br>${r.score}/${r.total} — ${esc(r.submitted_at||"")}</div>`).join(""):"لا توجد نتائج بعد.")}
-$("refresh").onclick=loadResults;load();
+function fail(t){$("loading").classList.add("hidden");$("start").classList.remove("hidden");$("examTitle").textContent="تعذر فتح الامتحان";$("examInfo").textContent=t}
+$("startBtn").onclick=startExam;
+$("studentName").addEventListener("keydown",e=>{if(e.key==="Enter")startExam()});
+async function startExam(){
+ const name=$("studentName").value.trim();
+ if(name.length<2){$("error").textContent="اكتب اسمك أولًا 😊";return}
+ $("startBtn").disabled=true;$("error").textContent="جاري بدء الامتحان...";
+ const {data,error}=await client.rpc("start_public_attempt",{p_code:exam.code,p_student_name:name});
+ if(error){$("startBtn").disabled=false;$("error").textContent="تعذر بدء الامتحان: "+error.message;return}
+ attemptId=data.attempt_id;questions=data.questions||[];answers=new Array(questions.length).fill(null);
+ endAt=new Date(data.ends_at).getTime();
+ $("start").classList.add("hidden");$("exam").classList.remove("hidden");
+ $("liveTitle").textContent=exam.title;$("studentLabel").textContent="الطالب: "+name;
+ render();timerId=setInterval(updateTimer,250);updateTimer();
+}
+function updateTimer(){
+ const left=Math.max(0,endAt-Date.now()),s=Math.ceil(left/1000),m=Math.floor(s/60),sec=s%60;
+ $("timer").textContent=String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+ if(left<=0){clearInterval(timerId);submitExam(true)}
+}
+function render(){
+ const q=questions[current];
+ $("qmeta").textContent=`السؤال ${current+1} من ${questions.length}`;
+ $("question").innerHTML=`<div class="q">${esc(q.text)}</div>`+q.options.map((o,i)=>`<button class="option ${answers[current]===i?"selected":""}" data-index="${i}">${esc(o)}</button>`).join("");
+ document.querySelectorAll(".option").forEach(b=>b.onclick=()=>{answers[current]=Number(b.dataset.index);render()});
+ $("progress").style.width=((current+1)/questions.length*100)+"%";
+ $("prev").disabled=current===0;$("next").classList.toggle("hidden",current===questions.length-1);$("submit").classList.toggle("hidden",current!==questions.length-1);
+}
+$("prev").onclick=()=>{if(current>0){current--;render()}};
+$("next").onclick=()=>{if(current<questions.length-1){current++;render()}};
+$("submit").onclick=()=>submitExam(false);
+async function submitExam(auto){
+ if(submitted)return;submitted=true;clearInterval(timerId);
+ const payload=questions.map((q,i)=>({question_id:q.id,selected_index:answers[i]}));
+ $("exam").classList.add("hidden");$("result").classList.remove("hidden");$("score").innerHTML="<p>جاري تسليم الامتحان وحساب الدرجة...</p>";
+ const {data,error}=await client.rpc("submit_public_attempt",{p_attempt_id:attemptId,p_answers:payload});
+ if(error){$("score").innerHTML=`<p class="error">حدث خطأ أثناء التسليم: ${esc(error.message)}</p>`;return}
+ $("score").innerHTML=`<div style="font-size:30px;font-weight:900">${data.score} / ${data.total}</div><p>${auto?"⏰ انتهى الوقت وتم التسليم تلقائيًا.":"🎉 تم التسليم بنجاح."}</p>`;
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+init();
